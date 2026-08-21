@@ -1,0 +1,14 @@
+name = "valnatt-backend"
+main = "src/index.ts"
+compatibility_date = "2026-08-21"
+
+[vars]
+VAL_RESULTS_INDEX_URL = "https://resultat.val.se/resultatfiler/val2026/index.md5"
+VAL_RESULT_STAGE = "preliminar"
+
+[[kv_namespaces]]
+binding = "VALNATT_CACHE"
+id = "7ae7484d67894496817364b95a4e59c4"
+
+[triggers]
+crons = ["* * * * *"]

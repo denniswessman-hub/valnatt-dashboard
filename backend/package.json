@@ -1,0 +1,25 @@
+{
+  "name": "@valnatt/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "build": "pnpm typecheck && wrangler deploy --dry-run --outdir dist",
+    "test:checksums": "node --experimental-strip-types scripts/verify-checksum-comparison.mjs",
+    "test:index": "node --experimental-strip-types scripts/verify-index-parser.mjs",
+    "test:archives": "node --experimental-strip-types scripts/verify-result-archives.mjs",
+    "test:normalizer": "node --experimental-strip-types scripts/verify-normalizer.mjs",
+    "test:status": "node --experimental-strip-types scripts/verify-operational-status.mjs",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260821.1",
+    "typescript": "7.0.2",
+    "wrangler": "4.125.0"
+  },
+  "dependencies": {
+    "@noble/hashes": "^2.3.0",
+    "fflate": "^0.8.3"
+  }
+}

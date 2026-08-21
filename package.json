@@ -1,0 +1,10 @@
+{
+  "name": "valnatt-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Valnattsdashboard for Bengtsfors, Amal, Mellerud and Dals-Ed.",
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "check:structure": "node scripts/check-structure.mjs"
+  }
+}
