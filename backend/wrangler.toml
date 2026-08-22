@@ -11,4 +11,4 @@ binding = "VALNATT_CACHE"
 id = "7ae7484d67894496817364b95a4e59c4"
 
 [triggers]
-crons = ["* * * * *"]
+crons = ["*/10 * * * *"]

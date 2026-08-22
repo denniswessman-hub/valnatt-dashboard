@@ -1,4 +1,4 @@
-import { getOrSeedLatestResults } from "./cache";
+import { getLatestResults } from "./cache";
 import type { Env } from "./env";
 import { getDashboardHealth, recordUpdateError } from "./operationalStatus";
 import { updateResults } from "./updateResults";
@@ -50,7 +50,7 @@ export default {
     }
 
     try {
-      const results = await getOrSeedLatestResults(env);
+      const results = await getLatestResults(env);
       const health = await getDashboardHealth(env, results);
       return jsonResponse({ ...results, health });
     } catch (error) {

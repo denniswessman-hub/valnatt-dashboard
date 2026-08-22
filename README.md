@@ -28,7 +28,7 @@ Del 15 av 15 är klar: KV, Worker, cron och frontend är driftsatta i Cloudflare
 - API: <https://valnatt-backend.valnatt-backend.workers.dev/api/results>
 - Källkod: <https://github.com/denniswessman-hub/valnatt-dashboard>
 
-Cloudflare Worker kör `scheduled` varje minut. Fram till att Valmyndighetens valresultatindex innehåller kompletta kommunfullmäktigefiler för alla fyra kommuner visar webbplatsen tydligt märkt demodata och driftstatusen `waiting`.
+Cloudflare Worker kör `scheduled` var tionde minut under testperioden. Fram till att Valmyndighetens valresultatindex innehåller kompletta kommunfullmäktigefiler för alla fyra kommuner visar webbplatsen tydligt märkt demodata och driftstatusen `waiting`.
 
 ## Lokal backend
 
@@ -71,7 +71,7 @@ Normaliseringen använder kommunens totalsiffror och partier från mandatfördel
 
 ### Driftstatus och fel
 
-Cron-fel kategoriseras och sparas i `last-error` utan att `latest-results` eller checksummorna skrivs över. Ett lyckat senare försök uppdaterar `last-successful-update` och rensar felet. API:t fortsätter servera senast kända resultat med driftstatusen `ok`, `waiting`, `stale` eller `error`; data betraktas som fördröjd efter tre minuter utan lyckad källkontroll. Tekniska fel loggas i Workern men skickas inte till frontend.
+Cron-fel kategoriseras och sparas i `last-error` utan att `latest-results` eller checksummorna skrivs över. Ett lyckat senare försök uppdaterar `last-successful-update` och rensar felet. API:t fortsätter servera senast kända resultat med driftstatusen `ok`, `waiting`, `stale` eller `error`; data betraktas som fördröjd efter 25 minuter utan lyckad källkontroll. Tekniska fel loggas i Workern men skickas inte till frontend.
 
 ## Lokal frontend
 

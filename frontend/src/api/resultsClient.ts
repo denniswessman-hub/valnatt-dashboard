@@ -1,6 +1,6 @@
 import type { DashboardResult, MunicipalityResult, PartyResult } from "../types";
 
-export const RESULTS_REFRESH_INTERVAL_MS = 20_000;
+export const RESULTS_REFRESH_INTERVAL_MS = 60_000;
 
 const configuredApiUrl = import.meta.env.VITE_RESULTS_API_URL?.trim();
 const resultsApiUrl = configuredApiUrl

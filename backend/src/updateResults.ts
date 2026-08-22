@@ -1,6 +1,6 @@
 import {
   CACHE_KEYS,
-  getOrSeedLatestResults,
+  getLatestResults,
   saveLatestResults,
 } from "./cache";
 import {
@@ -35,7 +35,7 @@ export async function updateResults(
     indexEntries,
     env.VAL_RESULT_STAGE,
   );
-  const previousResults = await getOrSeedLatestResults(env);
+  const previousResults = await getLatestResults(env);
   const previousChecksums = await getLatestChecksums(env.VALNATT_CACHE);
   const comparison = compareIndexChecksums(entries, previousChecksums);
   const archives = await downloadChangedResultArchives(comparison.changedEntries);
@@ -52,13 +52,21 @@ export async function updateResults(
     await saveLatestResults(env, dashboardResults);
   }
 
-  await saveLatestChecksums(
-    env.VALNATT_CACHE,
-    comparison.currentChecksums,
-  );
+  if (
+    comparison.changedEntries.length > 0
+    || comparison.removedPaths.length > 0
+  ) {
+    await saveLatestChecksums(
+      env.VALNATT_CACHE,
+      comparison.currentChecksums,
+    );
+  }
 
   await env.VALNATT_CACHE.put(CACHE_KEYS.lastSuccessfulUpdate, checkedAt);
-  await env.VALNATT_CACHE.delete(CACHE_KEYS.lastError);
+  const recordedError = await env.VALNATT_CACHE.get(CACHE_KEYS.lastError);
+  if (recordedError !== null) {
+    await env.VALNATT_CACHE.delete(CACHE_KEYS.lastError);
+  }
 
   return {
     indexEntryCount: entries.length,

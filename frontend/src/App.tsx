@@ -119,7 +119,7 @@ export function App() {
     : healthStatus === "stale"
       ? {
           title: "Resultatet kan vara fördröjt",
-          text: `Senast kända resultat visas. Senaste lyckade kontroll var ${successfulUpdateAge ?? "för mer än tre minuter sedan"}.`,
+          text: `Senast kända resultat visas. Senaste lyckade kontroll var ${successfulUpdateAge ?? "längre tillbaka än förväntat"}.`,
         }
       : healthStatus === "waiting"
         ? {

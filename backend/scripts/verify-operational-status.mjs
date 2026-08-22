@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { getLatestResults } from "../src/cache.ts";
 import { CACHE_KEYS } from "../src/cacheKeys.ts";
 import { mockResults } from "../src/mockData.ts";
 import {
@@ -8,6 +9,7 @@ import {
 } from "../src/operationalStatus.ts";
 
 const memory = new Map();
+let mutationCount = 0;
 const fakeKv = {
   async get(key, type) {
     const value = memory.get(key);
@@ -15,14 +17,20 @@ const fakeKv = {
     return type === "json" ? JSON.parse(value) : value;
   },
   async put(key, value) {
+    mutationCount += 1;
     memory.set(key, value);
   },
   async delete(key) {
+    mutationCount += 1;
     memory.delete(key);
   },
 };
 const env = { VALNATT_CACHE: fakeKv };
 const realResults = { ...mockResults, source: "Valmyndigheten" };
+
+const uncachedResults = await getLatestResults(env);
+assert.equal(uncachedResults.source, mockResults.source);
+assert.equal(mutationCount, 0, "Ett vanligt API-anrop får inte skriva till KV.");
 
 assert.equal(
   toSafeUpdateError(
@@ -46,7 +54,7 @@ let health = await getDashboardHealth(
 );
 assert.equal(health.status, "waiting");
 
-memory.set(CACHE_KEYS.lastSuccessfulUpdate, "2026-09-13T19:10:00Z");
+memory.set(CACHE_KEYS.lastSuccessfulUpdate, "2026-09-13T18:50:00Z");
 health = await getDashboardHealth(
   env,
   realResults,

@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 const SOURCE_NAME = "Valmyndigheten";
-const STALE_AFTER_MS = 3 * 60 * 1000;
+const STALE_AFTER_MS = 25 * 60 * 1000;
 export const STALE_AFTER_SECONDS = STALE_AFTER_MS / 1000;
 
 function isIsoTimestamp(value: unknown): value is string {

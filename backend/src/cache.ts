@@ -1,11 +1,11 @@
 import type { DashboardResult } from "./types";
 import type { Env } from "./env";
-import { mockResults } from "./mockData";
-import { CACHE_KEYS } from "./cacheKeys";
+import { mockResults } from "./mockData.ts";
+import { CACHE_KEYS } from "./cacheKeys.ts";
 
-export { CACHE_KEYS } from "./cacheKeys";
+export { CACHE_KEYS } from "./cacheKeys.ts";
 
-export async function getOrSeedLatestResults(env: Env): Promise<DashboardResult> {
+export async function getLatestResults(env: Env): Promise<DashboardResult> {
   const cached = await env.VALNATT_CACHE.get<DashboardResult & {
     lastChangedAt?: string | null;
   }>(
@@ -21,11 +21,8 @@ export async function getOrSeedLatestResults(env: Env): Promise<DashboardResult>
     throw new Error("Det cachelagrade dashboardresultatet har ett äldre eller ogiltigt format.");
   }
 
-  await Promise.all([
-    env.VALNATT_CACHE.put(CACHE_KEYS.latestResults, JSON.stringify(mockResults)),
-    env.VALNATT_CACHE.put(CACHE_KEYS.latestChecksums, JSON.stringify({})),
-  ]);
-
+  // Vanliga API-anrop ska vara strikt läsande. Om cachen ännu inte är
+  // initierad används demodata i svaret utan att besöket orsakar KV-writes.
   return mockResults;
 }
 
