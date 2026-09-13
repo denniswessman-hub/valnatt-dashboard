@@ -29,7 +29,12 @@ function isMunicipalityResult(value: unknown): value is MunicipalityResult {
     && typeof value.districtsTotal === "number"
     && typeof value.votesTotal === "number"
     && Array.isArray(value.parties)
-    && value.parties.every(isPartyResult);
+    && value.parties.every(isPartyResult)
+    && (value.districts === undefined || (Array.isArray(value.districts)
+      && value.districts.every(d => isRecord(d) && typeof d.code === 'string'
+        && typeof d.name === 'string' && typeof d.reported === 'boolean'
+        && typeof d.votesTotal === 'number' && Array.isArray(d.parties)
+        && d.parties.every(isPartyResult))));
 }
 
 function isDashboardResult(value: unknown): value is DashboardResult {

@@ -29,7 +29,12 @@ const env = { VALNATT_CACHE: fakeKv };
 const realResults = { ...mockResults, source: "Valmyndigheten" };
 
 const uncachedResults = await getLatestResults(env);
-assert.equal(uncachedResults.source, mockResults.source);
+assert.equal(uncachedResults.source, 'Inväntar Valmyndigheten');
+assert.equal(uncachedResults.municipalities[0].districts.length, 5);
+memory.set(CACHE_KEYS.latestResults, JSON.stringify(mockResults));
+assert.equal((await getLatestResults(env)).status, 'preliminar');
+assert.equal((await getLatestResults(env)).municipalities[0].parties.length, 0);
+memory.clear();
 assert.equal(mutationCount, 0, "Ett vanligt API-anrop får inte skriva till KV.");
 
 assert.equal(

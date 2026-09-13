@@ -24,7 +24,7 @@ function jsonResponse(body: unknown, status = 200, extraHeaders?: HeadersInit): 
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname !== resultsPath) {
@@ -50,9 +50,17 @@ export default {
     }
 
     try {
+      const edgeCache = caches.default;
+      const cacheKey = new Request(`${url.origin}${resultsPath}`);
+      const hit = await edgeCache.match(cacheKey);
+      if (hit) return hit;
       const results = await getLatestResults(env);
       const health = await getDashboardHealth(env, results);
-      return jsonResponse({ ...results, health });
+      const response = jsonResponse({ ...results, health, version: '2026-09-13-districts' }, 200, {
+        'cache-control': 'public, max-age=60',
+      });
+      ctx.waitUntil(edgeCache.put(cacheKey, response.clone()));
+      return response;
     } catch (error) {
       console.error("Kunde inte läsa dashboardens cache.", error);
       return jsonResponse(

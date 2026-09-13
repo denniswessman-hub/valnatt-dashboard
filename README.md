@@ -1,5 +1,19 @@
 # Valnattsdashboard 2026
 
+## Valdagen 13 september – aktuell drift
+
+Bengtsfors total och fem ordinarie valdistrikt prioriteras: Nordvästra (0101), Norra (0102), Nordöstra (0613), Sydöstra (0616), Sydvästra (0919). Namn och koder är kontrollerade mot https://data.val.se/filer/val2026/rostmottagning/vallokaler.json den 13 september. Eventuella uppsamlingsdistrikt från resultatfilen läggs också till. Röster per distrikt hämtas från röstfördelningsfilen; kommuntotalen från mandatfördelningsfilen. Bengtsfors kan publiceras utan att invänta grannkommunerna.
+
+Workers Free ($0) verifierades i Cloudflare den 13 september. Cron kör var tionde minut (144 gånger/dygn), med högst tre normala KV-skrivningar per körning (432/dygn). API-anrop skriver inte till KV; svar cachelagras 60 sekunder vid kanten. Gratisgränserna gäller hela kontot: 1 000 skrivningar och 100 000 läsningar/dygn. Gränsöverskridande på Free ger fel, inte automatisk betaldebitering. Ingen betalplan har aktiverats. Frontend kontrollerar API:t varje minut. Källa: https://developers.cloudflare.com/kv/platform/pricing/
+
+Gamla demodata och simulationsresultat används inte som valresultat. Tomt index ger vänteläge med distriktsnamn och utan påhittade röster. Live-index var tomt vid förberedelserna; fullständig kontroll mot faktiska röstsiffror återstår tills filer publiceras. Pages publiceras med Wrangler (ingen automatisk GitHub-deploy är konfigurerad).
+
+Backend: `cd backend; pnpm exec wrangler deploy`
+
+Frontend: bygg från roten med `VITE_RESULTS_API_URL=https://valnatt-backend.valnatt-backend.workers.dev/api/results`, kör `pnpm --filter @valnatt/frontend build`, därefter från backend `pnpm exec wrangler pages deploy ../frontend/dist --project-name valnatt-dashboard --branch main`.
+
+Äldre avsnitt nedan beskriver byggstegen; aktuell drift och intervall ovan har företräde.
+
 Monorepo för en valnattsdashboard med React/Vite i frontend och en Cloudflare Worker i backend.
 
 ## Projektstruktur

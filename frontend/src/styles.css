@@ -700,3 +700,11 @@ footer strong {
     animation: none;
   }
 }
+:root { scroll-behavior: smooth; }
+.district-results { margin-top: 2rem; padding: 0 clamp(16px, 3vw, 32px) 32px; }
+.party-results > p { padding: 0 32px; }
+.district-results > p { line-height: 1.6; }
+.district-card { border: 1px solid #9aa7a3; border-radius: 12px; padding: 1rem; margin-top: .75rem; }
+.district-card summary { cursor: pointer; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; min-height: 30px; }
+.district-card summary span { font-size: .9rem; }
+.district-card[open] summary { margin-bottom: 1rem; }

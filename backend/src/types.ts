@@ -8,7 +8,16 @@ export type PartyResult = {
   changePercent?: number;
 };
 
+export type DistrictResult = {
+  code: string;
+  name: string;
+  reported: boolean;
+  votesTotal: number;
+  parties: PartyResult[];
+};
+
 export type MunicipalityResult = {
+  districts?: DistrictResult[];
   code: string;
   name: string;
   districtsReported: number;

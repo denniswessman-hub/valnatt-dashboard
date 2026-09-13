@@ -1,6 +1,7 @@
 import type { DashboardResult } from "./types";
 import type { Env } from "./env";
 import { mockResults } from "./mockData.ts";
+import { waitingResults } from './waitingData.ts';
 import { CACHE_KEYS } from "./cacheKeys.ts";
 
 export { CACHE_KEYS } from "./cacheKeys.ts";
@@ -13,17 +14,17 @@ export async function getLatestResults(env: Env): Promise<DashboardResult> {
     "json",
   );
 
-  if (cached && cached.lastChangedAt !== undefined) {
+  if (cached && cached.source === 'Valmyndigheten' && cached.status !== 'test' && cached.lastChangedAt !== undefined) {
     return cached;
   }
 
-  if (cached && cached.source !== mockResults.source) {
+  if (cached && cached.status !== 'test' && cached.source !== mockResults.source) {
     throw new Error("Det cachelagrade dashboardresultatet har ett äldre eller ogiltigt format.");
   }
 
   // Vanliga API-anrop ska vara strikt läsande. Om cachen ännu inte är
   // initierad används demodata i svaret utan att besöket orsakar KV-writes.
-  return mockResults;
+  return waitingResults;
 }
 
 export async function saveLatestResults(

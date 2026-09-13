@@ -91,7 +91,7 @@ export function App() {
   const resultNotice = results?.status === "test"
     ? {
         title: "Testdata – inte ett verkligt valresultat",
-        text: "Valmyndighetens simulationsfiler är markerade som testdata.",
+        text: "Siffrorna är testdata och får inte användas som valresultat.",
       }
     : results?.status === "slutlig"
       ? {
@@ -123,8 +123,8 @@ export function App() {
         }
       : healthStatus === "waiting"
         ? {
-            title: "Väntar på första kompletta valresultatet",
-            text: "Dashboarden behåller tydligt märkt testdata tills alla fyra kommunfiler kan verifieras.",
+            title: "Väntar på resultat från Bengtsfors",
+            text: "Valdistrikten visas redan nu. Röster visas när Valmyndighetens kommunfiler har publicerats och verifierats.",
           }
         : {
             title: "Källuppdateringen fungerar",
@@ -158,8 +158,8 @@ export function App() {
           >
             <span className="connection-state__indicator" aria-hidden="true" />
             <p className="eyebrow">Resultat-API</p>
-            <h1>{loadError ? "Kunde inte ansluta" : "Hämtar testdata"}</h1>
-            <p>{loadError ?? "Dashboarden väntar på svar från den lokala Workern."}</p>
+            <h1>{loadError ? "Kunde inte ansluta" : "Hämtar valresultat"}</h1>
+            <p>{loadError ?? "Dashboarden hämtar senaste tillgängliga resultat."}</p>
           </section>
         ) : (
           <>
@@ -201,6 +201,7 @@ export function App() {
                     <span>{nearbyMunicipalities.length} kommuner</span>
                   </div>
                   <div className="municipality-list">
+                    {nearbyMunicipalities.length === 0 && <p>Åmål, Mellerud och Dals-Ed visas när deras resultatfiler finns.</p>}
                     {nearbyMunicipalities.map((municipality) => (
                       <SideMunicipalityCard key={municipality.code} municipality={municipality} />
                     ))}
@@ -229,7 +230,7 @@ export function App() {
             "Väntar på resultat-API:t"
           )}
         </p>
-        <p>Uppdateras var 20:e sekund · Data förmedlas via valresultat-API:t</p>
+        <p>Källkontroll var 10:e minut · Sidan kontrollerar uppdateringar varje minut · <a href="https://resultat.val.se/">Valmyndigheten</a></p>
       </footer>
     </div>
   );

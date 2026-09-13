@@ -115,12 +115,12 @@ assert.deepEqual(normalized.municipalities[0].parties, [
 
 assert.throws(
   () => normalizeDashboardUpdate(
-    archives.slice(0, 3),
+    archives.slice(1),
     mockResults,
     "2026-09-13T19:20:00Z",
     "preliminar",
   ),
-  /Resultat saknas för kommunkod 1438/,
+  /Resultat saknas för kommunkod 1460/,
 );
 
 const changedBengtsfors = buildArchive("1460", "Bengtsfors", {
@@ -153,3 +153,22 @@ assert.equal(
 );
 
 console.log("Normaliseringen validerar, sammanfogar och ordnar fyra kommunresultat.");
+
+const onlyBengtsfors = buildArchive('1460', 'Bengtsfors', {test:false});
+onlyBengtsfors.files[1].data.valdistrikt = [{
+  kommunkod:'1460', valdistriktskod:'14600101', namn:'Nordvästra',
+  rapporteringsTid:'2026-09-13T22:00:00+02:00', totaltAntalRoster:105,
+  rostfordelning: onlyBengtsfors.files[0].data.valomrade.rostfordelning,
+}, {kommunkod:'1460', valdistriktskod:'0102', namn:'Norra', rapporteringsTid:null}];
+const districtResult = normalizeDashboardUpdate([onlyBengtsfors], mockResults, '2026-09-13T20:01:00Z','preliminar');
+assert.equal(districtResult.municipalities.length,1);
+assert.equal(districtResult.status,'preliminar');
+const districts = districtResult.municipalities[0].districts;
+assert.equal(districts.length,5);
+assert.equal(districts[0].parties[0].votes,100);
+assert.equal(districts[0].parties[1].code,'ÖVR');
+assert.equal(districts[1].reported,false);
+assert.equal(districts[1].parties.length,0);
+onlyBengtsfors.files[1].data.valdistrikt.push({...onlyBengtsfors.files[1].data.valdistrikt[0]});
+assert.throws(() => normalizeDashboardUpdate([onlyBengtsfors],mockResults,'2026-09-13T20:01:00Z','preliminar'),/Dubblett/);
+console.log('Bengtsfors fungerar ensamt, fem distrikt bevaras, röster och vänteläge skiljs åt.');

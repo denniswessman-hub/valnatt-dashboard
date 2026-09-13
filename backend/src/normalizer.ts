@@ -1,4 +1,5 @@
 import type {
+  DistrictResult,
   DashboardResult,
   MunicipalityResult,
   PartyResult,
@@ -8,6 +9,7 @@ import {
   type ParsedResultArchive,
   type ResultStage,
 } from "./resultArchives.ts";
+import { bengtsforsDistricts } from './waitingData.ts';
 
 const SOURCE_NAME = "Valmyndigheten";
 const FALLBACK_PARTY_COLOR = "#667085";
@@ -283,8 +285,41 @@ function normalizeArchive(
     });
   }
 
+  const districtFiles = archive.files.filter(file => /_rostfordelning_\d{4}_KF\.json$/i.test(file.name));
+  if (districtFiles.length !== 1) throw new Error('Exakt en röstfördelningsfil krävs.');
+  const districtRoot = asRecord(districtFiles[0].data, 'rostfordelning');
+  if (!Array.isArray(districtRoot.valdistrikt)) throw new Error('valdistrikt måste vara en lista.');
+  const districts = new Map<string, DistrictResult>(code === '1460'
+    ? bengtsforsDistricts.map(d => [d.code, { ...d }]) : []);
+  const seen = new Set<string>();
+  for (const item of districtRoot.valdistrikt) {
+    const d = asRecord(item, 'valdistrikt');
+    if (d.kommunkod !== code) throw new Error('Valdistrikt har fel kommunkod.');
+    const districtCode = readString(d, 'valdistriktskod', 'valdistrikt');
+    const key = districtCode.startsWith(code) && districtCode.length === 8 ? districtCode.slice(4) : districtCode;
+    if (seen.has(key)) throw new Error('Dubblett av valdistrikt.');
+    seen.add(key);
+    const reported = typeof d.rapporteringsTid === 'string' && d.rapporteringsTid.trim() !== '';
+    let districtParties: PartyResult[] = [];
+    if (reported) {
+      const distribution = asRecord(d.rostfordelning, 'valdistrikt.rostfordelning');
+      const valid = asRecord(distribution.rosterPaverkaMandat, 'rosterPaverkaMandat');
+      if (!Array.isArray(valid.partiRoster)) throw new Error('partiRoster måste vara en lista.');
+      districtParties = valid.partiRoster.map(normalizeParty).sort((a,b) => a.order-b.order)
+        .map(({order: _order, ...party}) => party);
+      const others = asRecord(valid.rosterOvrigaPartier, 'rosterOvrigaPartier');
+      const votes = readNonNegativeInteger(others, 'antalRoster', 'rosterOvrigaPartier');
+      if (votes > 0) districtParties.push({code:'ÖVR', name:'Övriga partier', votes,
+        percent: readNumber(others, 'andelRoster', 'rosterOvrigaPartier'), color:FALLBACK_PARTY_COLOR});
+    }
+    districts.set(key, { code:key, name:readString(d, 'namn', 'valdistrikt'), reported,
+      votesTotal: reported ? readNonNegativeInteger(d, 'totaltAntalRoster', 'valdistrikt') : 0,
+      parties:districtParties });
+  }
+
   return {
     municipality: {
+      districts: [...districts.values()].sort((a,b) => a.code.localeCompare(b.code)),
       code,
       name: readString(area, "namn", "valomrade"),
       districtsReported,
@@ -351,7 +386,7 @@ export function normalizeDashboardUpdate(
     (code) => !municipalitiesByCode.has(code),
   );
 
-  if (missingCodes.length > 0) {
+  if (missingCodes.includes('1460')) {
     throw new Error(`Resultat saknas för kommunkod ${missingCodes.join(", ")}.`);
   }
 
@@ -373,7 +408,7 @@ export function normalizeDashboardUpdate(
     status,
     lastCheckedAt: checkedAt,
     lastChangedAt: latestIso(sourceUpdates),
-    municipalities: TARGET_MUNICIPALITY_CODES.map(
+    municipalities: TARGET_MUNICIPALITY_CODES.filter(code => municipalitiesByCode.has(code)).map(
       (code) => municipalitiesByCode.get(code)!,
     ),
   };

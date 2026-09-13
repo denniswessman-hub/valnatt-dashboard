@@ -36,9 +36,15 @@ export async function updateResults(
     env.VAL_RESULT_STAGE,
   );
   const previousResults = await getLatestResults(env);
-  const previousChecksums = await getLatestChecksums(env.VALNATT_CACHE);
+  const storedChecksums = await getLatestChecksums(env.VALNATT_CACHE);
+  const previousChecksums = previousResults.source === 'Valmyndigheten'
+    && previousResults.municipalities.find(m => m.code === '1460')?.districts
+    ? storedChecksums : {};
   const comparison = compareIndexChecksums(entries, previousChecksums);
   const archives = await downloadChangedResultArchives(comparison.changedEntries);
+  if (archives.some(a => a.files.some(f => !Array.isArray(f.data) && f.data.test === true))) {
+    throw new Error('Testdata i produktionsresultat avvisas.');
+  }
   const dashboardResults = normalizeDashboardUpdate(
     archives,
     previousResults,
@@ -48,7 +54,7 @@ export async function updateResults(
 
   // Resultatet sparas före checksummorna. Om en KV-skrivning avbryts kan nästa
   // Cron-körning säkert göra om samma idempotenta normalisering.
-  if (dashboardResults) {
+  if (dashboardResults && archives.length > 0) {
     await saveLatestResults(env, dashboardResults);
   }
 
