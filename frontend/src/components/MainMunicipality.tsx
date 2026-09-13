@@ -1,5 +1,6 @@
 import type { DashboardResult, MunicipalityResult } from "../types";
 import { PartyBar } from "./PartyBar";
+import { sortPartiesByVotes } from "../parties";
 
 const numberFormatter = new Intl.NumberFormat("sv-SE");
 
@@ -52,7 +53,7 @@ export function MainMunicipality({ municipality, status }: MainMunicipalityProps
       </div>
       <div className="party-results">
         {municipality.parties.length === 0 && <p>Inväntar rapporterade röster för Bengtsfors kommun.</p>}
-        {municipality.parties.map((party) => (
+        {sortPartiesByVotes(municipality.parties).map((party) => (
           <PartyBar key={party.code} party={party} />
         ))}
       </div>
@@ -62,8 +63,8 @@ export function MainMunicipality({ municipality, status }: MainMunicipalityProps
         {municipality.districts?.map(district => (
           <details key={district.code} className="district-card">
             <summary><strong>{district.name}</strong><span>{district.reported ? `${numberFormatter.format(district.votesTotal)} röster · Rapporterat` : 'Inväntar rapport'}</span></summary>
-            <p>Distriktskod {district.code}</p>
-            {district.reported ? district.parties.map(party => <PartyBar key={party.code} party={party} />)
+            <p className="district-meta">Distriktskod {district.code}{district.reported ? ` · ${numberFormatter.format(district.votesTotal)} röster` : ''}</p>
+            {district.reported ? sortPartiesByVotes(district.parties).map(party => <PartyBar key={party.code} party={party} />)
               : <p>Inga resultat har rapporterats för distriktet ännu.</p>}
           </details>
         ))}

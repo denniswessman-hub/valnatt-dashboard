@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:e2e": "node --import ./scripts/register-ts.mjs --experimental-strip-types scripts/e2e-realistic.mjs",
     "dev": "wrangler dev --local",
     "build": "pnpm typecheck && wrangler deploy --dry-run --outdir dist",
     "test:checksums": "node --experimental-strip-types scripts/verify-checksum-comparison.mjs",

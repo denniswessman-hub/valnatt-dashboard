@@ -9,12 +9,19 @@ import {
   saveLatestChecksums,
 } from "./checksums";
 import type { Env } from "./env";
-import { normalizeDashboardUpdate } from "./normalizer";
+import { normalizeArchive, normalizeDashboardUpdate } from "./normalizer";
 import {
   downloadChangedResultArchives,
   selectRelevantMunicipalityFiles,
+  type ParsedResultArchive,
 } from "./resultArchives";
 import { fetchIndexMd5 } from "./valmyndigheten";
+
+const MAIN_MUNICIPALITY_CODE = "1460";
+
+function isMainMunicipalityFile(path: string): boolean {
+  return new RegExp(`_${MAIN_MUNICIPALITY_CODE}_KF\\.zip$`, "i").test(path);
+}
 
 export type UpdateResultsSummary = {
   indexEntryCount: number;
@@ -41,7 +48,28 @@ export async function updateResults(
     && previousResults.municipalities.find(m => m.code === '1460')?.districts
     ? storedChecksums : {};
   const comparison = compareIndexChecksums(entries, previousChecksums);
-  const archives = await downloadChangedResultArchives(comparison.changedEntries);
+
+  // Varje fil hämtas och kontrolleras för sig. Ett fel i en grannkommuns fil
+  // (nedladdning, checksumma, JSON-format) får inte stoppa Bengtsfors. Den
+  // felande filen lämnas utanför checksummorna så att den försöks igen.
+  const archives: ParsedResultArchive[] = [];
+  const skippedPaths: string[] = [];
+
+  for (const entry of comparison.changedEntries) {
+    try {
+      const [archive] = await downloadChangedResultArchives([entry]);
+      normalizeArchive(archive, env.VAL_RESULT_STAGE);
+      archives.push(archive);
+    } catch (error) {
+      if (isMainMunicipalityFile(entry.path)) {
+        throw error;
+      }
+
+      console.error(`Hoppar över ${entry.path} i den här körningen.`, error);
+      skippedPaths.push(entry.path);
+    }
+  }
+
   if (archives.some(a => a.files.some(f => !Array.isArray(f.data) && f.data.test === true))) {
     throw new Error('Testdata i produktionsresultat avvisas.');
   }
@@ -58,9 +86,14 @@ export async function updateResults(
     await saveLatestResults(env, dashboardResults);
   }
 
+  for (const path of skippedPaths) {
+    delete comparison.currentChecksums[path];
+  }
+
   if (
-    comparison.changedEntries.length > 0
-    || comparison.removedPaths.length > 0
+    dashboardResults !== null
+    && (comparison.changedEntries.length > 0
+      || comparison.removedPaths.length > 0)
   ) {
     await saveLatestChecksums(
       env.VALNATT_CACHE,

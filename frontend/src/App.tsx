@@ -105,6 +105,9 @@ export function App() {
   const successfulUpdateAge = results?.health.lastSuccessfulUpdate
     ? formatAge(results.health.lastSuccessfulUpdate, results.health.serverTime)
     : null;
+  const lastChangedLabel = results?.lastChangedAt
+    ? timeFormatter.format(new Date(results.lastChangedAt))
+    : null;
   const displayedHealthStatus = loadError ? "error" : healthStatus;
   const healthNotice = loadError
     ? {
@@ -128,7 +131,7 @@ export function App() {
           }
         : {
             title: "Källuppdateringen fungerar",
-            text: `Valmyndigheten kontrollerades senast ${successfulUpdateAge ?? "nyligen"}.`,
+            text: `Valmyndigheten kontrollerades senast ${successfulUpdateAge ?? "nyligen"}${lastChangedLabel ? `. Resultatet ändrades senast kl. ${lastChangedLabel}` : ""}.`,
           };
 
   return (

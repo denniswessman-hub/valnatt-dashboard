@@ -447,6 +447,24 @@ h1 {
   font-size: 16px;
 }
 
+.party-bar__change strong {
+  font-size: 12px;
+}
+
+.party-bar__change--up strong {
+  color: #8fe3b4;
+}
+
+.party-bar__change--down strong {
+  color: #f0a3a3;
+}
+
+.district-meta {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .party-bar__track {
   height: 7px;
   margin-top: 12px;
@@ -663,15 +681,53 @@ footer strong {
     gap: 12px;
   }
 
-  .party-bar__name {
-    max-width: 140px;
+  .party-results > .party-bar {
+    min-width: 0;
   }
 
+  .party-bar__identity {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .party-bar__name {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+  }
+
+  /* Procent på egen rad, röster och förändring på raden under. */
   .party-bar__numbers {
-    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 104px;
+    row-gap: 2px;
+    column-gap: 8px;
+  }
+
+  .party-bar__numbers .party-bar__percent {
+    order: -1;
+    flex-basis: 100%;
+    min-width: 0;
+    font-size: 17px;
   }
 
   .party-bar__numbers > span {
+    flex-direction: row;
+    align-items: baseline;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .party-bar__numbers > span strong {
+    font-size: 11px;
+  }
+
+  .party-bar__numbers > span small {
+    font-size: 9px;
+  }
+
+  .party-bar__change small {
     display: none;
   }
 

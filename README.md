@@ -6,6 +6,8 @@ Bengtsfors total och fem ordinarie valdistrikt prioriteras: Nordvästra (0101), 
 
 Workers Free ($0) verifierades i Cloudflare den 13 september. Cron kör var tionde minut (144 gånger/dygn), med högst tre normala KV-skrivningar per körning (432/dygn). API-anrop skriver inte till KV; svar cachelagras 60 sekunder vid kanten. Gratisgränserna gäller hela kontot: 1 000 skrivningar och 100 000 läsningar/dygn. Gränsöverskridande på Free ger fel, inte automatisk betaldebitering. Ingen betalplan har aktiverats. Frontend kontrollerar API:t varje minut. Källa: https://developers.cloudflare.com/kv/platform/pricing/
 
+Robusthet inför valnatten (13 september, eftermiddag): en trasig eller saknad grannkommunfil stoppar inte Bengtsfors, grannkommuner som publiceras före Bengtsfors ger fortsatt vänteläge (inte fel), valåret läses från `valdatum` med `valtillfalle`/filnamn som reserv, tidpunkter utan tidszon tolkas som svensk tid, uppsamlingsdistrikt visas sist med kod `00`, partier sorteras efter röster och förändring mot 2022 visas när Valmyndigheten levererar den. Realistiskt slut-till-slut-test: `backend/scripts/e2e-realistic.mjs`.
+
 Gamla demodata och simulationsresultat används inte som valresultat. Tomt index ger vänteläge med distriktsnamn och utan påhittade röster. Live-index var tomt vid förberedelserna; fullständig kontroll mot faktiska röstsiffror återstår tills filer publiceras. Pages publiceras med Wrangler (ingen automatisk GitHub-deploy är konfigurerad).
 
 Backend: `cd backend; pnpm exec wrangler deploy`

@@ -113,14 +113,15 @@ assert.deepEqual(normalized.municipalities[0].parties, [
   },
 ]);
 
-assert.throws(
-  () => normalizeDashboardUpdate(
+// Grannkommuner före Bengtsfors ska ge fortsatt vänteläge, inte fel.
+assert.equal(
+  normalizeDashboardUpdate(
     archives.slice(1),
     mockResults,
     "2026-09-13T19:20:00Z",
     "preliminar",
   ),
-  /Resultat saknas för kommunkod 1460/,
+  null,
 );
 
 const changedBengtsfors = buildArchive("1460", "Bengtsfors", {

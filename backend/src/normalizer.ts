@@ -104,6 +104,28 @@ function normalizeStage(value: string, path: string): ResultStage {
   throw new Error(`${path} har ett okänt räkningstillfälle.`);
 }
 
+// Valmyndigheten anger tidpunkter som svensk lokal tid utan tidszon
+// (t.ex. "2026-09-13T20:41:12"). Utan offset skulle Workern tolka dem som UTC
+// och visa fel klockslag med två timmar. Sommartid gäller till 2026-10-25.
+export function toIsoWithSwedishOffset(value: string): string {
+  const trimmed = value.trim();
+
+  if (/(Z|[+-]\d{2}:?\d{2})$/i.test(trimmed) || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const year = Number(trimmed.slice(0, 4));
+  const lastSunday = (month: number): string => {
+    const lastDay = new Date(Date.UTC(year, month + 1, 0));
+    lastDay.setUTCDate(lastDay.getUTCDate() - lastDay.getUTCDay());
+    return lastDay.toISOString().slice(0, 10);
+  };
+  const date = trimmed.slice(0, 10);
+  const summerTime = date >= lastSunday(2) && date < lastSunday(9);
+
+  return `${trimmed}${summerTime ? "+02:00" : "+01:00"}`;
+}
+
 function normalizeColor(value: string): string {
   const color = value.trim();
 
@@ -142,7 +164,7 @@ function normalizeParty(
   };
 }
 
-function normalizeArchive(
+export function normalizeArchive(
   archive: ParsedResultArchive,
   expectedStage: ResultStage,
 ): NormalizedMunicipality {
@@ -176,14 +198,22 @@ function normalizeArchive(
     throw new Error(`${archive.source.path} har fel räkningstillfälle.`);
   }
 
-  const valdatum = readString(root, "valdatum", "root");
-  const electionYear = /^(\d{4})-\d{2}-\d{2}$/.exec(valdatum)?.[1];
+  // Valåret hämtas i första hand från valdatum (2026-specen). 2022 års filer
+  // saknade fältet, så valtillfalle ("Val_2026", "Val_20220911") och
+  // arkivnamnet används som reserv i stället för att stoppa hela uppdateringen.
+  const valdatum = typeof root.valdatum === "string" ? root.valdatum.trim() : "";
+  const valtillfalle = typeof root.valtillfalle === "string" ? root.valtillfalle : "";
+  const electionYear = /^(\d{4})-\d{2}-\d{2}$/.exec(valdatum)?.[1]
+    ?? /(\d{4})/.exec(valtillfalle)?.[1]
+    ?? /Val_(\d{4})/i.exec(archive.source.path)?.[1];
 
   if (!electionYear) {
     throw new Error("root.valdatum måste anges som ÅÅÅÅ-MM-DD.");
   }
 
-  const latestUpdate = readString(root, "senasteUppdateringstid", "root");
+  const latestUpdate = toIsoWithSwedishOffset(
+    readString(root, "senasteUppdateringstid", "root"),
+  );
 
   if (!Number.isFinite(Date.parse(latestUpdate))) {
     throw new Error("root.senasteUppdateringstid är inte en giltig tidpunkt.");
@@ -296,7 +326,8 @@ function normalizeArchive(
     const d = asRecord(item, 'valdistrikt');
     if (d.kommunkod !== code) throw new Error('Valdistrikt har fel kommunkod.');
     const districtCode = readString(d, 'valdistriktskod', 'valdistrikt');
-    const key = districtCode.startsWith(code) && districtCode.length === 8 ? districtCode.slice(4) : districtCode;
+    // Ordinarie distrikt: "14600101" -> "0101". Uppsamlingsdistrikt: "146000" -> "00".
+    const key = districtCode.startsWith(code) && districtCode.length > 4 ? districtCode.slice(4) : districtCode;
     if (seen.has(key)) throw new Error('Dubblett av valdistrikt.');
     seen.add(key);
     const reported = typeof d.rapporteringsTid === 'string' && d.rapporteringsTid.trim() !== '';
@@ -319,7 +350,10 @@ function normalizeArchive(
 
   return {
     municipality: {
-      districts: [...districts.values()].sort((a,b) => a.code.localeCompare(b.code)),
+      // Ordinarie valdistrikt (fyrsiffrig kod) först, uppsamlingsdistrikt sist.
+      districts: [...districts.values()].sort((a,b) =>
+        (a.code.length === 4 ? 0 : 1) - (b.code.length === 4 ? 0 : 1)
+        || a.code.localeCompare(b.code)),
       code,
       name: readString(area, "namn", "valomrade"),
       districtsReported,
@@ -387,7 +421,10 @@ export function normalizeDashboardUpdate(
   );
 
   if (missingCodes.includes('1460')) {
-    throw new Error(`Resultat saknas för kommunkod ${missingCodes.join(", ")}.`);
+    // Grannkommunernas filer kan publiceras före Bengtsfors. Det är inget fel:
+    // dashboarden ligger kvar i vänteläge och filerna hämtas om nästa körning
+    // (checksummorna sparas inte förrän ett Bengtsfors-resultat finns i KV).
+    return null;
   }
 
   const retainsTestData = canReusePrevious
