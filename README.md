@@ -1,5 +1,9 @@
 # Valnattsdashboard 2026
 
+## Avstängd 14 september 2026
+
+Automatiska Cloudflare-körningar och publik Worker-adress är avstängda. GitHub Pages är avpublicerad med källa None. Cloudflare Pages visar endast ett statiskt stängt-meddelande utan skript eller API-anrop. Källkod och lagrade resultat behålls. Driftbeskrivningarna nedan är historiska; återpublicera inte utan ett nytt uttryckligt beslut.
+
 ## Valdagen 13 september – aktuell drift
 
 Bengtsfors total och fem ordinarie valdistrikt prioriteras: Nordvästra (0101), Norra (0102), Nordöstra (0613), Sydöstra (0616), Sydvästra (0919). Namn och koder är kontrollerade mot https://data.val.se/filer/val2026/rostmottagning/vallokaler.json den 13 september. Eventuella uppsamlingsdistrikt från resultatfilen läggs också till. Röster per distrikt hämtas från röstfördelningsfilen; kommuntotalen från mandatfördelningsfilen. Bengtsfors kan publiceras utan att invänta grannkommunerna.

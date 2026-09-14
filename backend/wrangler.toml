@@ -1,6 +1,6 @@
 name = "valnatt-backend"
 main = "src/index.ts"
-workers_dev = true
+workers_dev = false
 preview_urls = false
 compatibility_date = "2026-08-21"
 
@@ -13,4 +13,4 @@ binding = "VALNATT_CACHE"
 id = "7ae7484d67894496817364b95a4e59c4"
 
 [triggers]
-crons = ["*/10 * * * *"]
+crons = []
